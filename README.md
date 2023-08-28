@@ -18,7 +18,7 @@ DomainTakenYet is a fast CLI tool for checking domain availability via DNS recor
 Install once and use `domaintakenyet` from any terminal:
 
 ```bash
-npm install -g domaintakenyet
+npm install -g domain-taken-yet
 ```
 
 ### Quick Run with NPX
@@ -26,7 +26,7 @@ npm install -g domaintakenyet
 Run without installing, ideal for one-time checks:
 
 ```bash
-npx domaintakenyet
+npx domain-taken-yet
 ```
 
 ### Usage
@@ -34,19 +34,19 @@ npx domaintakenyet
 To check a single domain:
 
 ```bash
-domaintakenyet example.com
+domain-taken-yet example.com
 ```
 
 To check multiple domains:
 
 ```bash
-domaintakenyet example1.com example2.com
+domain-taken-yet example1.com example2.com
 ```
 
 For detailed DNS check information:
 
 ```bash
-domaintakenyet example.com --verbose
+domain-taken-yet example.com --verbose
 ```
 
 ## Contributing

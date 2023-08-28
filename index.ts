@@ -52,8 +52,8 @@ program
   .on('--help', () => {
     console.log('');
     console.log('Examples:');
-    console.log('  $ domaintakenyet example.com');
-    console.log('  $ domaintakenyet example1.com example2.com');
+    console.log('  $ domain-taken-yet example.com');
+    console.log('  $ domain-taken-yet example1.com example2.com');
   })
   .command('check <domains...>')
   .alias('c')
