@@ -1,6 +1,6 @@
 {
   "name": "domain-taken-yet",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "DomainTakenYet is a fast CLI tool for checking domain availability via DNS records. Ideal for developers, entrepreneurs, and domain enthusiasts.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
