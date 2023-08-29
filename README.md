@@ -15,7 +15,7 @@ DomainTakenYet is a fast CLI tool for checking domain availability via DNS recor
 
 ### Global Installation with NPM
 
-Install once and use `domaintakenyet` from any terminal:
+Install once and use `domain-taken-yet` from any terminal:
 
 ```bash
 npm install -g domain-taken-yet
