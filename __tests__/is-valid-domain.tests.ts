@@ -50,5 +50,27 @@ describe('isValidDomain', () => {
   it('should not validate a domain that ends with a dot', () => {
     expect(isValidDomain('example.com.')).toBeFalsy();
   });
+
+  it('should validate an internationalized domain name', () => {
+    expect(isValidDomain('münchen.com')).toBeFalsy();
+  });
+
+  it('should validate a domain with uppercase letters', () => {
+    expect(isValidDomain('EXAMPLE.com')).toBeTruthy();
+  });
+
+  it('should validate a domain close to maximum length', () => {
+    const longDomain = 'a'.repeat(63) + '.' + 'b'.repeat(63) + '.' + 'c'.repeat(63) + '.com';
+    expect(isValidDomain(longDomain)).toBeTruthy();
+  });
+
+  it('should not validate a domain exceeding maximum length', () => {
+    const overlyLongDomain = 'a'.repeat(64) + '.com';
+    expect(isValidDomain(overlyLongDomain)).toBeFalsy();
+  });
+
+  it('should not validate a domain without a valid TLD', () => {
+    expect(isValidDomain('example.c')).toBeFalsy();
+  });
 });
 

@@ -1,7 +1,18 @@
 #!/usr/bin/env node
 
-import { promises as dnsPromises } from 'dns';
-import { program } from 'commander';
+import {promises as dnsPromises} from 'dns';
+import {program} from 'commander';
+
+/**
+ * The size of each domain chunk that will be processed concurrently.
+ */
+const CHUNK_SIZE = 6;
+
+/**
+ * The amount of time (in milliseconds) to wait between processing each domain chunk.
+ * This delay is added to avoid overloading DNS servers.
+ */
+const DELAY_BETWEEN_CHUNKS = 1000;
 
 /**
  * Represents the options that can be provided to the CLI command.
@@ -17,9 +28,10 @@ interface CommandOptions {
  * Represents specific errors that might arise when querying DNS records.
  * - 'ENOTFOUND': The domain name was not found, indicating it might be available.
  * - 'ENODATA': The domain has no records of the requested type, but it might still be registered.
+ * - 'ESERVFAIL': DNS server returned a general failure.
  */
 interface DNSError extends Error {
-  code?: 'ENOTFOUND' | 'ENODATA';
+  code?: 'ENOTFOUND' | 'ENODATA' | 'ESERVFAIL';
 }
 
 /**
@@ -61,16 +73,16 @@ program
     'Check the availability of provided domain(s) by querying their DNS records.',
   )
   .option('-v, --verbose', 'Output detailed information for each DNS check')
-  .action((domains: string[], options: CommandOptions) => {
-    domains.forEach((domain: string): void => {
-      if (isValidDomain(domain)) {
-        logDomainStatus(domain, options.verbose).catch((error) =>
-          console.error(`Error processing domain ${domain}:`, error),
-        );
-      } else {
-        console.error(`"${domain}" is not a valid domain name.`);
-      }
-    });
+  .action(async (domains: string[], options: CommandOptions) => {
+    try {
+      await processDomainsInChunks(domains, options.verbose);
+      console.log('Finished checking all provided domains.');
+    } catch (error: any) {
+      console.error(
+        'An error occurred while processing the domains:',
+        error.message,
+      );
+    }
   });
 
 /**
@@ -94,8 +106,10 @@ export async function checkDomainStatus(
     dnsResolvers.map((resolver) => resolver(domain)),
   );
 
+  let allErrors = true;
   for (const [index, result] of results.entries()) {
     if (result.status === 'fulfilled') {
+      allErrors = false;
       if (verbose) {
         console.log(
           `[${domain}] Found record type: ${dnsResolvers[index].name}`,
@@ -104,7 +118,11 @@ export async function checkDomainStatus(
       return 'taken';
     } else {
       const dnsError = result.reason as DNSError;
-      if (dnsError.code !== 'ENOTFOUND' && dnsError.code !== 'ENODATA') {
+      if (
+        dnsError.code !== 'ENOTFOUND' &&
+        dnsError.code !== 'ENODATA' &&
+        dnsError.code !== 'ESERVFAIL'
+      ) {
         if (verbose) {
           console.error(
             `[${domain}] Encountered a DNS error with record type ${dnsResolvers[index].name}: ${dnsError.message}`,
@@ -113,6 +131,11 @@ export async function checkDomainStatus(
       }
     }
   }
+
+  if (allErrors && verbose) {
+    console.error(`[${domain}] All DNS checks resulted in errors.`);
+  }
+
   return 'available';
 }
 
@@ -139,8 +162,61 @@ export async function logDomainStatus(
  */
 export function isValidDomain(domain: string): boolean {
   const domainRegex =
-    /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/;
+    /^(?=.{1,253})(?=.{1,63}(?:\.|$))(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\.[a-zA-Z0-9-]{1,63}(?<!-))*(?:\.[a-zA-Z]{2,})$/;
   return domainRegex.test(domain);
+}
+
+/**
+ * Processes the domains in chunks and adds a delay between each chunk to avoid overloading DNS servers.
+ *
+ * @param domains - An array of domain names to be checked.
+ * @param verbose - Whether to output detailed information for each DNS check.
+ *
+ * @remarks
+ * This function slices the given list of domains into smaller chunks. Each chunk is then processed concurrently,
+ * ensuring that only a certain number of domains are queried at once. This is especially useful to not overload
+ * DNS servers or hit rate limits. After each chunk is processed, a delay is introduced before processing the next chunk.
+ */
+async function processDomainsInChunks(
+  domains: string[],
+  verbose: boolean = false,
+): Promise<void> {
+  for (let i = 0; i < domains.length; i += CHUNK_SIZE) {
+    const chunk = domains.slice(i, i + CHUNK_SIZE);
+
+    if (verbose) {
+      console.log(
+        `Processing chunk ${i / CHUNK_SIZE + 1} of ${Math.ceil(
+          domains.length / CHUNK_SIZE,
+        )}`,
+      );
+    }
+
+    await Promise.all(
+      chunk.map(async (domain) => {
+        if (isValidDomain(domain)) {
+          await logDomainStatus(domain, verbose);
+        } else {
+          console.error(`"${domain}" is not a valid domain name.`);
+        }
+      }),
+    );
+
+    if (i + CHUNK_SIZE < domains.length) {
+      if (verbose) {
+        console.log(
+          `Finished processing chunk. Waiting for ${
+            DELAY_BETWEEN_CHUNKS / 1000
+          } seconds before processing next chunk.`,
+        );
+      }
+      await new Promise((res) => setTimeout(res, DELAY_BETWEEN_CHUNKS));
+    }
+  }
+
+  if (verbose) {
+    console.log('All chunks processed.');
+  }
 }
 
 /**
@@ -149,11 +225,10 @@ export function isValidDomain(domain: string): boolean {
  * - If no arguments are provided, it displays the help message.
  */
 function main() {
-  program.parse(process.argv);
-
-  if (!program.args.length) {
-    program.help();
-  }
+  program.parseAsync(process.argv).catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }
 
 /**
