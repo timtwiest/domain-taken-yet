@@ -122,7 +122,7 @@ export async function checkDomainStatus(
  * @param domain - The domain name to be checked.
  * @param verbose - Whether to output detailed information for each DNS check. Defaults to false.
  */
-async function logDomainStatus(
+export async function logDomainStatus(
   domain: string,
   verbose: boolean = false,
 ): Promise<void> {
