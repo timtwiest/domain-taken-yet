@@ -51,7 +51,7 @@ domain-taken-yet example.com --verbose
 
 ## Contributing
 
-We welcome contributions to the Project License Generator! Here are a couple of ways you can help:
+We welcome contributions to the DomainTakenYet! Here are a couple of ways you can help:
 
 1. Report Bugs: If you encounter any bugs or issues with our tool, please report them using the Issues tab on our GitHub
    repository. Your feedback helps us improve the tool for everyone.
