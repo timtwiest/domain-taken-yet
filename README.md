@@ -2,9 +2,7 @@
 
 DomainTakenYet is a fast CLI tool for checking domain availability via DNS records. Ideal for developers, entrepreneurs, and domain enthusiasts.
 
-<div align="center">
-  <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbW0xNjBuZWk4ZGpncW1lb2lxb245ZndzZm44c2M2MTFlMHRpd3FpeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3NkhyzhIkJNhB1clqk/giphy.gif" alt="domain-taken-yet">
-</div>
+![domain-taken-yet](https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbW0xNjBuZWk4ZGpncW1lb2lxb245ZndzZm44c2M2MTFlMHRpd3FpeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3NkhyzhIkJNhB1clqk/giphy.gif)
 
 ## Table of Contents
 
